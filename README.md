@@ -165,6 +165,36 @@ Triggers.prepare(TriggerOperation.Before_Update, oldList, newList)
     .execute();
 ```
 
+## Trigger Switch
+
+You can turn individual trigger handlers or triggers for entire SObjectTypes off completely with the use of a custom metadata type `Trigger_Switch__mdt` or programmatically through the `TriggerSwitch` class. The custom setting also includes a field for specifying on/off for a specific User's email address in a semi-colon delimited list. See `User_Emails_to_Skip__c`.
+
+This is handy for integrations to skip automation that isn't necessary for basic data loads, or times when you need to deactivate specific functionality or the entire trigger easily.
+
+### Programmatically
+
+```java
+// specific sobject
+TriggerSwitch triggerSwitch = new TriggerSwitch(Content__c.getSObjectType());
+triggerSwitch.turnOn('Custom_Object__c');
+...
+
+// or specific handler
+TriggerSwitch triggerSwitch = new TriggerSwitch(Content__c.getSObjectType());
+triggerSwitch.turnOn('MyAccountHandler');
+...
+```
+
+### Custom Metadata
+
+You can create a custom metadata setting for either SObject or trigger handler and individually turn them on or off. If one does not exist for the SObject or trigger handler, that trigger will just continue to work.
+
+| Context Name | Is Active | User Emails to Skip |
+|--|--|--|
+| Contact | false | integrations.user@nomail.com |
+| MyAccountHandler | true  | |
+| MyContactValidationHandler | true | integrations.user@nomail.com;my.admin.user@nomail.com |
+
 ## APIs
 
 ### Trigger Handler Interfaces
