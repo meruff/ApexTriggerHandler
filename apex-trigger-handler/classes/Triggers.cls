@@ -1,23 +1,23 @@
 /**
- * BSD 3-Clause License
- *
+ * @description BSD 3-Clause License
+ * <p/>
  * Copyright (c) 2020, Jianfeng Jin
  * All rights reserved.
- *
+ * <p/>
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * <p/>
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * <p/>
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * <p/>
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
- *
+ * <p/>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,10 +29,10 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 public class Triggers {
     public static final Boolean WHEN_ALWAYS = true;
     public static final Skips skips = new Skips();
+    public static TriggerSwitch triggerSwitch;
 
     public static Manager prepare() {
         return new Manager();
@@ -103,27 +103,25 @@ public class Triggers {
                 Boolean isImplemented = false;
                 switch on props.operationType {
                     when BEFORE_INSERT {
-                        isImplemented = handler instanceOf BeforeInsert;
+                        isImplemented = handler instanceof BeforeInsert;
                     }
                     when AFTER_INSERT {
-                        isImplemented = handler instanceOf AfterInsert;
+                        isImplemented = handler instanceof AfterInsert;
                     }
                     when BEFORE_UPDATE {
-                        isImplemented = handler instanceOf BeforeUpdate;
+                        isImplemented = handler instanceof BeforeUpdate;
                     }
                     when AFTER_UPDATE {
-                        isImplemented = handler instanceOf AfterUpdate;
+                        isImplemented = handler instanceof AfterUpdate;
                     }
                     when BEFORE_DELETE {
-                        isImplemented = handler instanceOf BeforeDelete;
+                        isImplemented = handler instanceof BeforeDelete;
                     }
                     when AFTER_DELETE {
-                        isImplemented = handler instanceOf AfterDelete;
+                        isImplemented = handler instanceof AfterDelete;
                     }
                     when AFTER_UNDELETE {
-                        isImplemented = handler instanceOf AfterUndelete;
-                    }
-                    when else {
+                        isImplemented = handler instanceof AfterUndelete;
                     }
                 }
                 if (isImplemented) {
@@ -143,15 +141,15 @@ public class Triggers {
         @TestVisible
         private final Set<Type> skippedHandlers = new Set<Type>();
 
-        public void add(type handlerType) {
+        public void add(Type handlerType) {
             skippedHandlers.add(handlerType);
         }
 
-        public void remove(type handlerType) {
+        public void remove(Type handlerType) {
             skippedHandlers.remove(handlerType);
         }
 
-        public Boolean contains(type handlerType) {
+        public Boolean contains(Type handlerType) {
             return skippedHandlers.contains(handlerType);
         }
 
@@ -167,7 +165,6 @@ public class Triggers {
         private Type getHandlerType(Handler handler) {
             String printName = String.valueOf(handler);
             String typeName = printName.substring(0, printName.indexOf(':'));
-            System.debug(typeName);
             return Type.forName(typeName);
         }
     }
@@ -176,6 +173,7 @@ public class Triggers {
         public final Map<Object, Object> state { get; private set; }
         public final Skips skips { get; private set; }
         public final Props props { get; private set; }
+        public final TriggerSwitch triggerSwitch { get; private set; }
 
         private final List<Handler> handlers = new List<Handler>();
         private Integer currIndex = -1;
@@ -185,6 +183,7 @@ public class Triggers {
             this.props = props;
             this.state = new Map<Object, Object>();
             this.skips = Triggers.skips;
+            this.triggerSwitch = Triggers.triggerSwitch;
         }
 
         private void reset() {
@@ -219,31 +218,32 @@ public class Triggers {
             this.currIndex++;
             Handler handler = this.handlers[this.currIndex];
             this.isExecutingCriteria = true;
-            if (!this.skips.contains(handler) && handler.criteria(this) == true) {
+            if (!this.skips.contains(handler)
+                && this.triggerSwitch.isOn(String.valueOf(handler).split(':')[0])
+                && handler.criteria(this) == true
+            ) {
                 this.isExecutingCriteria = false;
                 switch on this.props.operationType {
                     when BEFORE_INSERT {
-                        ((BeforeInsert)handler).beforeInsert(this);
+                        ((BeforeInsert) handler).beforeInsert(this);
                     }
                     when AFTER_INSERT {
-                        ((AfterInsert)handler).afterInsert(this);
+                        ((AfterInsert) handler).afterInsert(this);
                     }
                     when BEFORE_UPDATE {
-                        ((BeforeUpdate)handler).beforeUpdate(this);
+                        ((BeforeUpdate) handler).beforeUpdate(this);
                     }
                     when AFTER_UPDATE {
-                        ((AfterUpdate)handler).afterUpdate(this);
+                        ((AfterUpdate) handler).afterUpdate(this);
                     }
                     when BEFORE_DELETE {
-                        ((BeforeDelete)handler).beforeDelete(this);
+                        ((BeforeDelete) handler).beforeDelete(this);
                     }
                     when AFTER_DELETE {
-                        ((AfterDelete)handler).afterDelete(this);
+                        ((AfterDelete) handler).afterDelete(this);
                     }
                     when AFTER_UNDELETE {
-                        ((AfterUndelete)handler).afterUndelete(this);
-                    }
-                    when else {
+                        ((AfterUndelete) handler).afterUndelete(this);
                     }
                 }
             } else {
@@ -320,7 +320,7 @@ public class Triggers {
                     this.oldList = null;
                     this.oldMap = null;
                     this.newList = newList;
-                    this.newMap = newList != null? new Map<Id, SObject>(newList) : null;
+                    this.newMap = newList != null ? new Map<Id, SObject>(newList) : null;
                 }
                 when AFTER_INSERT {
                     this.isAfter = true;
@@ -328,7 +328,7 @@ public class Triggers {
                     this.oldList = null;
                     this.oldMap = null;
                     this.newList = newList;
-                    this.newMap = newList != null? new Map<Id, SObject>(newList) : null;
+                    this.newMap = newList != null ? new Map<Id, SObject>(newList) : null;
                 }
                 when BEFORE_UPDATE {
                     this.isBefore = true;
@@ -336,7 +336,7 @@ public class Triggers {
                     this.oldList = oldList;
                     this.oldMap = oldList != null ? new Map<Id, SObject>(oldList) : null;
                     this.newList = newList;
-                    this.newMap = newList != null? new Map<Id, SObject>(newList) : null;
+                    this.newMap = newList != null ? new Map<Id, SObject>(newList) : null;
                 }
                 when AFTER_UPDATE {
                     this.isAfter = true;
@@ -344,7 +344,7 @@ public class Triggers {
                     this.oldList = oldList;
                     this.oldMap = oldList != null ? new Map<Id, SObject>(oldList) : null;
                     this.newList = newList;
-                    this.newMap = newList != null? new Map<Id, SObject>(newList) : null;
+                    this.newMap = newList != null ? new Map<Id, SObject>(newList) : null;
                 }
                 when BEFORE_DELETE {
                     this.isBefore = true;
@@ -368,9 +368,7 @@ public class Triggers {
                     this.oldList = null;
                     this.oldMap = null;
                     this.newList = newList;
-                    this.newMap = newList != null? new Map<Id, SObject>(newList) : null;
-                }
-                when else {
+                    this.newMap = newList != null ? new Map<Id, SObject>(newList) : null;
                 }
             }
             this.setSize();
@@ -389,10 +387,11 @@ public class Triggers {
         @TestVisible
         private void setSObjectType() {
             if (this.oldList != null) {
-                this.sObjectType = this.oldList.getSobjectType();
+                this.sObjectType = this.oldList.getSObjectType();
             } else if (this.newList != null) {
                 this.sObjectType = this.newList.getSObjectType();
             }
+            Triggers.triggerSwitch = new TriggerSwitch(this.sObjectType);
         }
 
         public List<Object> getValues(SObjectField field) {
@@ -406,7 +405,7 @@ public class Triggers {
             }
 
             for (SObject obj : objects) {
-				values.add(obj.get(field));
+                values.add(obj.get(field));
             }
             return values;
         }
@@ -422,15 +421,15 @@ public class Triggers {
         }
 
         public Boolean isChanged(SObjectField field1) {
-            return isChangedAny(new List<SObjectField> { field1 });
+            return isChangedAny(new List<SObjectField>{field1});
         }
 
         public Boolean isChangedAny(SObjectField field1, SObjectField field2) {
-            return isChangedAny(new List<SObjectField> { field1, field2 });
+            return isChangedAny(new List<SObjectField>{field1, field2});
         }
 
         public Boolean isChangedAny(SObjectField field1, SObjectField field2, SObjectField field3) {
-            return isChangedAny(new List<SObjectField> { field1, field2, field3 });
+            return isChangedAny(new List<SObjectField>{field1, field2, field3});
         }
 
         public Boolean isChangedAny(List<SObjectField> fields) {
@@ -438,11 +437,11 @@ public class Triggers {
         }
 
         public Boolean isChangedAll(SObjectField field1, SObjectField field2) {
-            return isChangedAll(new List<SObjectField> { field1, field2 });
+            return isChangedAll(new List<SObjectField>{field1, field2});
         }
 
         public Boolean isChangedAll(SObjectField field1, SObjectField field2, SObjectField field3) {
-            return isChangedAll(new List<SObjectField> { field1, field2, field3 });
+            return isChangedAll(new List<SObjectField>{field1, field2, field3});
         }
 
         public Boolean isChangedAll(List<SObjectField> fields) {
@@ -450,21 +449,21 @@ public class Triggers {
         }
 
         public List<Id> filterChanged(SObjectField field1) {
-            return filterChangedAny(new List<SObjectField> { field1 });
+            return filterChangedAny(new List<SObjectField>{field1});
         }
 
         public List<Id> filterChangedAny(SObjectField field1, SObjectField field2) {
-            return filterChangedAny(new List<SObjectField> { field1, field2 });
+            return filterChangedAny(new List<SObjectField>{field1, field2});
         }
 
         public List<Id> filterChangedAny(SObjectField field1, SObjectField field2, SObjectField field3) {
-            return filterChangedAny(new List<SObjectField> { field1, field2, field3 });
+            return filterChangedAny(new List<SObjectField>{field1, field2, field3});
         }
 
         public List<Id> filterChangedAny(List<SObjectField> fields) {
             Set<Id> changedIds = new Set<Id>();
             if (this.isUpdate) {
-                for(Id objectId : this.newMap.keySet()) {
+                for (Id objectId : this.newMap.keySet()) {
                     for (SObjectField field : fields) {
                         if (isChanged(objectId, field)) {
                             changedIds.add(objectId);
@@ -477,18 +476,18 @@ public class Triggers {
         }
 
         public List<Id> filterChangedAll(SObjectField field1, SObjectField field2) {
-            return filterChangedAll(new List<SObjectField> { field1, field2 });
+            return filterChangedAll(new List<SObjectField>{field1, field2});
         }
 
         public List<Id> filterChangedAll(SObjectField field1, SObjectField field2, SObjectField field3) {
-            return filterChangedAll(new List<SObjectField> { field1, field2, field3 });
+            return filterChangedAll(new List<SObjectField>{field1, field2, field3});
         }
 
         public List<Id> filterChangedAll(List<SObjectField> fields) {
             Set<Id> changedIds = new Set<Id>();
             if (this.isUpdate) {
                 changedIds = this.newMap.keySet();
-                for(Id objectId : this.newMap.keySet()) {
+                for (Id objectId : this.newMap.keySet()) {
                     for (SObjectField field : fields) {
                         if (!isChanged(objectId, field)) {
                             changedIds.remove(objectId);
