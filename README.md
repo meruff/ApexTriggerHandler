@@ -175,13 +175,13 @@ This is handy for integrations to skip automation that isn't necessary for basic
 
 ```java
 // specific sobject
-TriggerSwitch triggerSwitch = new TriggerSwitch(Content__c.getSObjectType());
+TriggerSwitch triggerSwitch = new TriggerSwitch(Custom_Object__c.getSObjectType());
 triggerSwitch.turnOff('Custom_Object__c');
 ...
 triggerSwitch.turnOn('Custom_Object__c');
 
 // or specific handler
-TriggerSwitch triggerSwitch = new TriggerSwitch(Content__c.getSObjectType());
+TriggerSwitch triggerSwitch = new TriggerSwitch(Account.getSObjectType());
 triggerSwitch.turnOff('MyAccountHandler');
 ...
 triggerSwitch.turnOn('MyAccountHandler');
